@@ -16,23 +16,53 @@ class StudentController extends Controller
 
     public function showRegister()
     {
+        if ($this->current()) {
+            return redirect()->route('misiones');
+        }
+
         return view('registro');
     }
 
     public function register(Request $r)
     {
+        // Normalizar antes de validar para que la comparación de duplicados no dependa de mayúsculas.
+        $r->merge([
+            'uid' => strtoupper(trim((string) $r->input('uid'))),
+            'correo' => strtolower(trim((string) $r->input('correo'))),
+        ]);
+
         $data = $r->validate([
-            'nombre' => ['required', 'string', 'min:3'],
-            'correo' => ['required', 'email', 'regex:/@unab\.edu\.co$/i'],
-            'uid' => ['required', 'regex:/^U00\d{3,}$/i'],
+            'nombre' => ['required', 'string', 'min:3', 'max:120'],
+            'correo' => ['required', 'email', 'max:120', 'regex:/@unab\.edu\.co$/i'],
+            'uid' => ['required', 'regex:/^U00\d{3,}$/'],
         ], [], ['correo' => 'correo', 'uid' => 'ID']);
 
-        $uid = strtoupper($data['uid']);
-        $student = Student::updateOrCreate(
-            ['uid' => $uid],
-            ['nombre' => $data['nombre'], 'correo' => strtolower($data['correo']), 'started_at' => now()]
-        );
-        session(['student_uid' => $uid]);
+        $existing = Student::where('uid', $data['uid'])->first();
+
+        if ($existing) {
+            // Un ID ya registrado solo puede volver a entrar si el profesor lo habilitó
+            // y el correo coincide con el del registro original.
+            if (! $existing->allow_reentry || $existing->correo !== $data['correo']) {
+                return back()->withInput()->withErrors([
+                    'uid' => 'Este ID ya está registrado en la operación. Si eres tú y perdiste la sesión, pídele al profesor que habilite tu reingreso.',
+                ]);
+            }
+            $existing->update(['allow_reentry' => false]);
+            $student = $existing;
+        } else {
+            if (Student::where('correo', $data['correo'])->exists()) {
+                return back()->withInput()->withErrors([
+                    'correo' => 'Este correo ya está asociado a otro ID.',
+                ]);
+            }
+            $student = Student::create([
+                'uid' => $data['uid'], 'nombre' => $data['nombre'],
+                'correo' => $data['correo'], 'started_at' => now(),
+            ]);
+        }
+
+        $r->session()->regenerate();
+        session(['student_uid' => $student->uid]);
 
         return redirect()->route('misiones');
     }

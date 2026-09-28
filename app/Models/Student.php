@@ -6,9 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Student extends Model
 {
-    protected $fillable = ['uid', 'nombre', 'correo', 'started_at', 'finished', 'finished_at'];
+    protected $fillable = ['uid', 'nombre', 'correo', 'started_at', 'finished', 'finished_at', 'allow_reentry'];
 
-    protected $casts = ['started_at' => 'datetime', 'finished_at' => 'datetime', 'finished' => 'boolean'];
+    protected $casts = [
+        'started_at' => 'datetime', 'finished_at' => 'datetime',
+        'finished' => 'boolean', 'allow_reentry' => 'boolean',
+    ];
 
     public function submissions()
     {

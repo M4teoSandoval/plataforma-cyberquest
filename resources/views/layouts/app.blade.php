@@ -69,7 +69,16 @@ th{font-family:var(--font-d);color:var(--muted);font-size:.85rem}
 .table-scroll{overflow-x:auto}
 .center{text-align:center}.mt{margin-top:18px}
 .footer{color:var(--muted);font-size:.82rem;text-align:center;padding:26px 0}
+.wrap.wide{max-width:1320px}
+.story p{margin:0 0 12px}
+.story strong{color:var(--ink)}
+.dossier{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px}
+.dossier>div{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.dossier h4{margin:0 0 6px;font-family:var(--font-d);font-size:1rem;color:var(--gold);letter-spacing:.04em;text-transform:uppercase}
+.dossier p{margin:0;color:var(--muted);font-size:.9rem}
+.quote{border-left:3px solid var(--gold);padding:4px 0 4px 16px;margin:18px 0;color:var(--ink);font-style:italic}
 </style>
+@stack('styles')
 </head>
 <body>
 <div class="checker gold"></div>

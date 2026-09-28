@@ -16,4 +16,7 @@ Route::post('/salir', [StudentController::class, 'logout'])->name('salir');
 Route::get('/profesor', [TeacherController::class, 'showLogin'])->name('profesor.login');
 Route::post('/profesor', [TeacherController::class, 'login'])->name('profesor.login.store');
 Route::get('/profesor/panel', [TeacherController::class, 'panel'])->name('profesor.panel');
+Route::get('/profesor/exportar', [TeacherController::class, 'export'])->name('profesor.exportar');
+Route::post('/profesor/estudiantes/{student}/reingreso', [TeacherController::class, 'allowReentry'])->name('profesor.reingreso');
+Route::delete('/profesor/estudiantes/{student}', [TeacherController::class, 'destroy'])->name('profesor.eliminar');
 Route::post('/profesor/salir', [TeacherController::class, 'logout'])->name('profesor.salir');

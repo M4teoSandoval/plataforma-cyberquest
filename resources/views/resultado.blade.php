@@ -18,9 +18,9 @@
       @endforeach
     </div>
     <p class="lead center">
-      @if($hechas === 5) ¡Operación completada! Recuperaste el Proyecto Rascasse y cerraste el caso.
-      @elseif($hechas === 0) Todavía no validaste ninguna misión. Vuelve al laboratorio y sigue el rastro.
-      @else Completaste {{ $hechas }} de 5 misiones. Puedes volver e intentar las que faltan.
+      @if($hechas === 5) ¡Caso cerrado! Reuniste toda la evidencia: cómo entró el responsable, qué se llevó y quién firmó el paquete. El expediente llega a los comisarios antes de la clasificación y UNAB Racing sale en Mónaco con la cabeza en alto.
+      @elseif($hechas === 0) El expediente sigue vacío. Sin evidencia, UNAB Racing no puede denunciar a nadie. Vuelve al laboratorio y sigue el rastro.
+      @else Completaste {{ $hechas }} de 5 misiones. El expediente tiene pistas sólidas, pero todavía no alcanza para demostrar el robo ante los comisarios. Puedes volver e intentar las que faltan.
       @endif
     </p>
     <div class="center mt"><a class="btn ghost" href="{{ route('misiones') }}">Volver a las misiones</a></div>

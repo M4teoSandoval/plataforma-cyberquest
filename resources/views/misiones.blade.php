@@ -14,11 +14,17 @@
     </div>
   </div>
 
-  <div class="panel">
-    <span class="eyebrow">Briefing de la operación</span>
+  <div class="panel story">
+    <span class="eyebrow">Briefing de la operación · Confidencial</span>
     <h2 class="mt">El robo del Proyecto Rascasse</h2>
-    <p class="lead">A tres días del Gran Premio de Mónaco, UNAB Racing detecta que su paquete aerodinámico confidencial —el <strong>Proyecto Rascasse</strong>— aparece en el coche de UIS GP. Investiga la máquina del laboratorio, sigue el rastro y descubre quién filtró los datos.</p>
-    <p class="lead mt">Resuelve las misiones <strong>en orden</strong>. Cuando encuentres una flag <span class="tag">RASCASSE{...}</span>, súbela aquí.</p>
+    <p class="lead">Te damos la bienvenida al caso, {{ \Illuminate\Support\Str::before($s->nombre, ' ') }}. Esto es lo que la escudería sabe hasta ahora:</p>
+    <div class="dossier">
+      <div><h4>El activo robado</h4><p>El <strong>Proyecto Rascasse</strong>: el paquete aerodinámico de UNAB Racing para Mónaco, fruto de toda una temporada de simulaciones y túnel de viento.</p></div>
+      <div><h4>El sospechoso</h4><p><strong>UIS GP</strong> estrenó en los entrenamientos un alerón delantero idéntico. Alguien de dentro tuvo que entregárselo.</p></div>
+      <div><h4>La escena</h4><p>Un servidor del laboratorio con señales de intrusión, ya aislado de la red de la fábrica. Ahí están los rastros del responsable.</p></div>
+      <div><h4>El reloj</h4><p>Faltan 72 horas para la salida. Las pruebas tienen que llegar a los comisarios antes de la carrera.</p></div>
+    </div>
+    <p class="lead mt">Cada misión es un paso de la investigación y deja la pista que necesitas para la siguiente, así que resuélvelas <strong>en orden</strong>. Cuando encuentres una flag <span class="tag">RASCASSE{...}</span>, súbela aquí como evidencia.</p>
   </div>
 
   @foreach($missions as $m)
