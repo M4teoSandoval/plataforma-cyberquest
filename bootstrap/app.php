@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Railway (y la mayoría de PaaS) sirven detrás de un proxy inverso que
+        // termina el TLS. Confiamos en sus cabeceras X-Forwarded-* para que
+        // Laravel sepa que la petición original era HTTPS.
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

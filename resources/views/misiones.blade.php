@@ -43,10 +43,10 @@
       <div><h4>El reloj</h4><p>Taller de ~2 horas. Resuelve las 5 misiones <strong>en orden</strong>.</p></div>
     </div>
     <div class="mt">
-      <span class="kv">Red host-only <b>192.168.56.0/24</b></span>
+      <span class="kv">Red <b>192.168.56.0/24</b></span>
       <span class="kv">Víctima (ej.) <b>192.168.56.103</b></span>
       <span class="kv">SSH <b>:22</b></span>
-      <span class="kv">Web <b>:80</b></span>
+      <span class="kv">Web Apache <b>:2027</b></span>
     </div>
     <p class="hint mt">Las direcciones son las documentadas y pueden variar según tu instalación local. Cada comando indica <b>dónde</b> ejecutarlo y qué hacer <b>si falla</b>.</p>
   </div>
