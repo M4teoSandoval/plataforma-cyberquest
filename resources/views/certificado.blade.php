@@ -2,7 +2,10 @@
     // El tamaño del nombre se ajusta para que siempre quepa completo y centrado,
     // conservando tildes y la letra ñ (fuente DejaVu, con soporte Unicode).
     $len = mb_strlen($nombre);
-    $nameSize = $len <= 22 ? 44 : ($len <= 32 ? 36 : ($len <= 44 ? 28 : 23));
+    // Tamaños pensados para que prácticamente cualquier nombre real quepa en
+    // UNA sola línea (los largos se encogen más), evitando que el documento
+    // crezca de alto y empuje las firmas fuera de la hoja.
+    $nameSize = $len <= 20 ? 42 : ($len <= 30 ? 34 : ($len <= 40 ? 27 : ($len <= 52 ? 21 : 18)));
 @endphp
 <!DOCTYPE html>
 <html lang="es">
@@ -20,7 +23,7 @@
     .sheet {
         position: relative;
         width: 100%;
-        height: 540pt;             /* A4 apaisado útil */
+        height: 585pt;             /* A4 apaisado (595pt) menos un pequeño margen */
         background: #ffffff;
         overflow: hidden;
     }
@@ -40,7 +43,7 @@
     .checker table { width: 100%; border-collapse: collapse; }
     .checker td { padding: 0; height: 6pt; line-height: 6pt; font-size: 1pt; }
 
-    .content { position: absolute; top: 40pt; left: 46pt; right: 46pt; text-align: center; }
+    .content { padding: 34pt 46pt 0; text-align: center; }
 
     .logo { height: 46pt; margin-bottom: 6pt; }
     .org {
@@ -75,15 +78,17 @@
     .facilitators { font-size: 10pt; color: #16222E; margin-top: 12pt; }
     .facilitators b { color: #0E2438; }
 
-    .footer-row { position: absolute; left: 46pt; right: 46pt; bottom: 52pt; }
-    .sign { display: inline-block; width: 200pt; text-align: center; }
-    .sign .line { border-top: 0.8pt solid #16222E; margin: 0 20pt 4pt; }
+    .footer-row { margin: 14pt 46pt 0; }
+    .footer-row table { width: 100%; border-collapse: collapse; }
+    .footer-row td { width: 50%; text-align: center; vertical-align: top; padding: 0 30pt; }
+    .sign .line { border-top: 0.8pt solid #16222E; margin: 0 0 4pt; }
     .sign .role { font-size: 8pt; color: #4A6075; }
     .sign .nm { font-size: 9pt; font-weight: bold; color: #0E2438; }
 
     .certid {
-        position: absolute; left: 0; right: 0; bottom: 56pt; text-align: center;
+        text-align: center; margin-top: 16pt;
         font-family: "DejaVu Sans Mono", monospace; font-size: 7.5pt; color: #6B7C8A;
+        line-height: 1.5;
     }
     .certid b { color: #0E2438; }
 </style>
@@ -131,24 +136,25 @@
                 <td style="text-align:left; width:33%;"><span class="lbl">Evento</span><br>Semana de Ingeniería UNAB 2026</td>
             </tr>
         </table>
+
+        <div class="certid">
+            Certificado N.º <b>{{ $code }}</b> · Emitido el {{ $fechaTexto }}
+        </div>
     </div>
 
     <div class="footer-row">
-        <div class="sign" style="float:left;">
-            <div class="line"></div>
-            <div class="nm">Yamid Gabriel Gamba González</div>
-            <div class="role">Facilitador</div>
-        </div>
-        <div class="sign" style="float:right;">
-            <div class="line"></div>
-            <div class="nm">Fabián Suárez</div>
-            <div class="role">Facilitador</div>
-        </div>
-    </div>
-
-    <div class="certid">
-        Certificado N.º <b>{{ $code }}</b><br>
-        Emitido el {{ $fechaTexto }}
+        <table><tr>
+            <td class="sign">
+                <div class="line"></div>
+                <div class="nm">Yamid Gabriel Gamba González</div>
+                <div class="role">Facilitador</div>
+            </td>
+            <td class="sign">
+                <div class="line"></div>
+                <div class="nm">Fabián Suárez</div>
+                <div class="role">Facilitador</div>
+            </td>
+        </tr></table>
     </div>
 </div>
 </body>
