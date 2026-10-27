@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Certificate;
 use App\Models\Mission;
 use App\Models\Student;
 use App\Models\Submission;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class StudentController extends Controller
@@ -82,8 +84,9 @@ class StudentController extends Controller
         }
         $missions = Mission::orderBy('orden')->get();
         $done = $s->completedMissionIds();
+        $guide = require resource_path('missions/walkthrough.php');
 
-        return view('misiones', compact('s', 'missions', 'done'));
+        return view('misiones', compact('s', 'missions', 'done', 'guide'));
     }
 
     public function submitFlag(Request $r, Mission $mission)
@@ -125,6 +128,57 @@ class StudentController extends Controller
         $done = $s->completedMissionIds();
 
         return view('resultado', compact('s', 'missions', 'done'));
+    }
+
+    /**
+     * Genera y descarga el certificado PDF personalizado.
+     *
+     * Seguridad: la autorización se decide SOLO con datos del backend.
+     *  - Debe existir una sesión de estudiante válida.
+     *  - El estudiante debe tener las 5 misiones realmente resueltas
+     *    (flags validadas por hash en submitFlag), no un estado del navegador.
+     *  - El nombre sale de $student->nombre (fuente confiable), nunca del request.
+     *  - El registro del certificado es idempotente: una descarga repetida
+     *    reutiliza el mismo código y no altera la puntuación ni el progreso.
+     */
+    public function certificate()
+    {
+        $s = $this->current();
+        if (! $s) {
+            return redirect()->route('registro');
+        }
+
+        if (! $s->hasCompletedOperation()) {
+            return redirect()->route('resultado')
+                ->with('cert_error', 'El certificado estará disponible cuando completes las cinco misiones.');
+        }
+
+        // Reutiliza el certificado existente o lo crea una sola vez.
+        $certificate = Certificate::firstOrCreate(
+            ['student_id' => $s->id],
+            ['code' => Certificate::generateCode(), 'issued_at' => now()],
+        );
+
+        $logoPath = public_path('images/logo-universidad-unab.png');
+        $logo = is_file($logoPath)
+            ? 'data:image/png;base64,'.base64_encode(file_get_contents($logoPath))
+            : null;
+
+        $meses = [1 => 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        $fecha = $certificate->issued_at;
+        $fechaTexto = $fecha->day.' de '.$meses[(int) $fecha->month].' de '.$fecha->year;
+
+        $pdf = Pdf::loadView('certificado', [
+            'nombre' => $s->nombre,
+            'code' => $certificate->code,
+            'fechaTexto' => $fechaTexto,
+            'logo' => $logo,
+        ])->setPaper('a4', 'landscape');
+
+        $slug = \Illuminate\Support\Str::slug($s->nombre) ?: 'participante';
+
+        return $pdf->download("certificado-ciberguardians-{$slug}.pdf");
     }
 
     public function logout()

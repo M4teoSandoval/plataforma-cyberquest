@@ -106,6 +106,69 @@ class CyberquestTest extends TestCase
         $this->assertStringContainsString('1;"Beto Dos";U00000002;b@unab.edu.co;2000;2', $csv);
     }
 
+    private function completarTodo(Student $s): void
+    {
+        foreach (Mission::orderBy('orden')->get() as $m) {
+            Submission::create(['student_id' => $s->id, 'mission_id' => $m->id, 'correcta' => true]);
+        }
+    }
+
+    public function test_sin_completar_no_se_descarga_certificado(): void
+    {
+        $this->registro();
+        $s = Student::first();
+        // Solo 2 de 5 misiones resueltas.
+        foreach (Mission::orderBy('orden')->take(2)->get() as $m) {
+            Submission::create(['student_id' => $s->id, 'mission_id' => $m->id, 'correcta' => true]);
+        }
+
+        $this->get('/certificado')->assertRedirect('/resultado');
+        $this->assertSame(0, \App\Models\Certificate::count());
+    }
+
+    public function test_completar_las_cinco_misiones_genera_un_pdf(): void
+    {
+        $this->registro();
+        $s = Student::first();
+        $this->completarTodo($s);
+
+        $res = $this->get('/certificado');
+        $res->assertOk();
+        $this->assertStringContainsString('application/pdf', $res->headers->get('content-type'));
+        $this->assertStringStartsWith('%PDF', $res->getContent());
+        $this->assertSame(1, \App\Models\Certificate::count());
+        $this->assertStringStartsWith('CG-2026-', \App\Models\Certificate::first()->code);
+    }
+
+    public function test_descargar_dos_veces_no_duplica_certificado(): void
+    {
+        $this->registro();
+        $s = Student::first();
+        $this->completarTodo($s);
+
+        $this->get('/certificado')->assertOk();
+        $code = \App\Models\Certificate::first()->code;
+        $this->get('/certificado')->assertOk();
+
+        $this->assertSame(1, \App\Models\Certificate::count());
+        $this->assertSame($code, \App\Models\Certificate::first()->code);
+    }
+
+    public function test_un_estudiante_no_puede_descargar_el_certificado_de_otro(): void
+    {
+        // Ana completa y genera su certificado.
+        $this->registro();
+        $ana = Student::first();
+        $this->completarTodo($ana);
+        $this->get('/certificado')->assertOk();
+        $this->flushSession();
+
+        // Beto, sin completar, no obtiene nada (y menos el de Ana).
+        $this->registro(['uid' => 'U00123457', 'correo' => 'beto@unab.edu.co', 'nombre' => 'Beto Díaz']);
+        $this->get('/certificado')->assertRedirect('/resultado');
+        $this->assertSame(1, \App\Models\Certificate::count());
+    }
+
     public function test_eliminar_estudiante_borra_su_progreso(): void
     {
         $s = Student::create(['uid' => 'U00000003', 'nombre' => 'Caro', 'correo' => 'c@unab.edu.co']);

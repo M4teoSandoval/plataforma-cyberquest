@@ -18,9 +18,31 @@ class Student extends Model
         return $this->hasMany(Submission::class);
     }
 
+    public function certificate()
+    {
+        return $this->hasOne(Certificate::class);
+    }
+
     public function completedMissionIds()
     {
         return $this->submissions()->where('correcta', true)->pluck('mission_id')->unique();
+    }
+
+    /**
+     * Número de misiones realmente resueltas (flags validadas por el backend).
+     */
+    public function solvedCount(): int
+    {
+        return $this->completedMissionIds()->count();
+    }
+
+    /**
+     * ¿Completó la operación completa? Se compara contra el total real de
+     * misiones registradas, no contra una constante.
+     */
+    public function hasCompletedOperation(): bool
+    {
+        return $this->solvedCount() >= Mission::count() && Mission::count() > 0;
     }
 
     public function points()
