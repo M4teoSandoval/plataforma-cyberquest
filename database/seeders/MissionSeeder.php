@@ -29,7 +29,7 @@ class MissionSeeder extends Seeder
                 'El Proyecto Rascasse está guardado en una caja fuerte digital de doble capa. Si logras abrirla y verificar quién firmó el archivo, tendrás la prueba de que el diseño salió de UNAB Racing.',
                 'Abre el contenedor cifrado, descifra el paquete protegido y verifica quién lo firmó.',
                 'Primero una capa simétrica (contenedor con contraseña), luego una asimétrica (clave privada protegida). La firma revela autoría.',
-                'Caja Fuerte', 1000, '6c4f2462815dda7b8f337592af3eddc6688b26d3c415bf808d6ea6bd002a4329'],
+                'Caja Fuerte', 1000, 'c9b013e4d52186922d0b4ab823e62ca90e8f42c0b623ab51b130607ed0482c28'],
             [5, 'Bandera a cuadros',
                 'El último mensaje del responsable está cifrado "a mano", como las notas que se pasaban los estrategas antes de la radio digital. Descifrarlo revela cómo tomó el control total del servidor y cierra el caso.',
                 'Rompe el criptograma con tus propias matemáticas, consigue el control del servidor y cierra la operación.',
