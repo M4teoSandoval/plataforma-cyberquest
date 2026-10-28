@@ -2,7 +2,7 @@
 @section('content')
 <div class="wrap">
   <div class="panel story" style="margin-top:40px">
-    <span class="eyebrow">Gran Premio de Mónaco 2025 · 72 horas para la salida</span>
+    <span class="eyebrow">Gran Premio de Mónaco 2026 · 72 horas para la salida</span>
     <h1 style="font-size:clamp(2.4rem,7vw,4.5rem);margin:14px 0 16px">Operación Rascasse</h1>
 
     <p class="lead">En la Fórmula 1 lo más valioso no es el motor ni el piloto: es la <strong>información</strong>. La telemetría, las simulaciones de aerodinámica y las horas de túnel de viento pueden valer décimas por vuelta y millones de dólares. Por eso los equipos protegen sus diseños como secretos de Estado. En 2007, un equipo recibió una multa de 100 millones de dólares y fue excluido del campeonato de constructores por tener documentos técnicos de su rival.</p>
