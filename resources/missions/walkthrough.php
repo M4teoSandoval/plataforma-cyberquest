@@ -6,8 +6,12 @@
  |--------------------------------------------------------------------------
  | Comandos tomados TAL CUAL de la "Guía Red Team" oficial del taller
  | (fuente de verdad). No se añaden comandos que no aparezcan en esa guía.
- | Entorno real: víctima 192.168.56.103, web Apache en el puerto 2027,
+ | Entorno real: víctima 192.168.56.XXX, web Apache en el puerto 2027,
  | SSH en el 22. Kali como atacante.
+ |
+ | Misión 1: el escaneo inicial se divide en tres pasos cortos (-sn, -T4 y
+ | -T5 -p-) para no bloquear al estudiante con un solo nmap lento. XXX es el
+ | último octeto de la víctima, que se descubre en el primer paso.
  |
  | Reglas de seguridad aplicadas (del brief del taller):
  |  - NO se incluye ninguna flag RASCASSE{...} real (solo el placeholder).
@@ -32,22 +36,19 @@ return [
             .'ingeniero y entrarás por SSH para leer tu primera evidencia.',
         'steps' => [
             [
-                'title' => 'Escanear la red y descubrir el servidor',
-                'cmd' => "nmap -A -T4 -p- -vv 192.168.56.*",
+                'title' => 'Descubrir qué equipos hay en la red',
+                'cmd' => "nmap -sn 192.168.56.*",
                 'where' => 'kali',
-                'what' => 'Escanea toda la red del laboratorio, todos los puertos de cada equipo, e identifica servicios y versiones.',
-                'why' => 'No conoces aún la IP de la víctima ni qué expone. Este escaneo te revela la máquina (192.168.56.103) y sus servicios: la web Apache en el 2027 y el SSH en el 22.',
+                'what' => 'Hace un descubrimiento de hosts (ping scan) sobre toda la red del laboratorio, sin escanear puertos.',
+                'why' => 'Antes de atacar necesitas saber qué direcciones IP están activas. Este paso es rápido y te da la IP de la víctima: anota los tres primeros octetos de tu red y quédate con el último número que aparezca como activo, porque lo usarás como XXX en los siguientes comandos.',
                 'parts' => [
                     ['nmap', 'herramienta de exploración de redes y puertos.'],
-                    ['-A', 'análisis agresivo: detecta versiones, sistema operativo y scripts por defecto.'],
-                    ['-T4', 'velocidad rápida (nivel 4 de 5).'],
-                    ['-p-', 'analiza los 65535 puertos, no solo los comunes.'],
-                    ['-vv', 'salida muy detallada (verbose).'],
+                    ['-sn', 'descubrimiento de hosts: comprueba qué máquinas responden, sin analizar puertos.'],
                     ['192.168.56.*', 'toda la red del laboratorio (192.168.56.1–254).'],
                 ],
                 'where_text' => 'En la terminal de Kali Linux, conectada a la red del laboratorio.',
-                'expect' => 'Una máquina (192.168.56.103) con los puertos 22 (SSH, OpenSSH) y 80/2027 (web, Apache httpd). El título de la web es "UIS GP Racing — Proyecto Rascasse".',
-                'next' => 'Abre esa web en Firefox para estudiar el equipo (siguiente paso).',
+                'expect' => 'Una lista de hosts activos. Uno de ellos es la víctima; su IP tendrá la forma 192.168.56.XXX, donde XXX es el número que te muestra nmap.',
+                'next' => 'Escanear esa IP concreta con un análisis rápido (siguiente paso).',
                 'fail' => [
                     '«nmap: command not found»: sudo apt install -y nmap.',
                     'Si no aparece ninguna máquina, confirma que la VM víctima esté encendida y que tu Kali esté en la misma red.',
@@ -55,14 +56,55 @@ return [
                 ],
             ],
             [
+                'title' => 'Escaneo rápido del servidor encontrado',
+                'cmd' => "nmap -A -T4 192.168.56.XXX",
+                'where' => 'kali',
+                'what' => 'Analiza los puertos más comunes de esa IP e identifica servicios, versiones y sistema operativo.',
+                'why' => 'Ya conoces la IP de la víctima (el valor de XXX que obtuviste con -sn). Este escaneo es rápido y te da una primera idea de qué expone antes de lanzar el análisis completo.',
+                'parts' => [
+                    ['nmap', 'herramienta de exploración de redes y puertos.'],
+                    ['-A', 'análisis agresivo: detecta versiones, sistema operativo y scripts por defecto.'],
+                    ['-T4', 'velocidad rápida (nivel 4 de 5).'],
+                    ['192.168.56.XXX', 'la IP de la víctima; reemplaza XXX por el último número que descubriste con -sn.'],
+                ],
+                'where_text' => 'En la terminal de Kali Linux.',
+                'expect' => 'Los servicios principales del servidor, con la web Apache en el puerto 2027 y el SSH en el 22 ya visibles en la mayoría de los casos.',
+                'next' => 'Completar el análisis con todos los puertos (siguiente paso).',
+                'fail' => [
+                    'Si no responde, revisa que XXX sea exactamente la IP que apareció en el paso anterior.',
+                    'Si el escaneo va lento, prueba con -T4 y sin -p- para confirmar conectividad.',
+                ],
+            ],
+            [
+                'title' => 'Análisis completo de todos los puertos',
+                'cmd' => "nmap -A -T5 -p- 192.168.56.XXX",
+                'where' => 'kali',
+                'what' => 'Escanea los 65535 puertos de la víctima con detección de servicios y una velocidad alta.',
+                'why' => 'Algunos servicios se esconden en puertos poco comunes. Este barrido completo garantiza que no se te escape nada: es el inventario definitivo del servidor.',
+                'parts' => [
+                    ['nmap', 'herramienta de exploración de redes y puertos.'],
+                    ['-A', 'análisis agresivo: detecta versiones, sistema operativo y scripts por defecto.'],
+                    ['-T5', 'velocidad máxima (nivel 5 de 5); acelera el barrido de los 65535 puertos.'],
+                    ['-p-', 'analiza los 65535 puertos, no solo los comunes.'],
+                    ['192.168.56.XXX', 'la IP de la víctima; reemplaza XXX por el último número que descubriste con -sn.'],
+                ],
+                'where_text' => 'En la terminal de Kali Linux.',
+                'expect' => 'El inventario completo: puertos 22 (SSH, OpenSSH) y 80/2027 (web, Apache httpd). El título de la web es "UIS GP Racing — Proyecto Rascasse".',
+                'next' => 'Abre esa web en Firefox para estudiar el equipo (siguiente paso).',
+                'fail' => [
+                    'Si no aparece la web, confirma que XXX sea la IP correcta y que el puerto 2027 esté abierto.',
+                    'Si el escaneo se corta, vuelve a ejecutarlo; -T5 es agresivo y algunos equipos limitan la tasa de respuesta.',
+                ],
+            ],
+            [
                 'title' => 'Explorar la web del equipo en Firefox',
-                'cmd' => "firefox http://192.168.56.103:2027/",
+                'cmd' => "firefox http://192.168.56.XXX:2027/",
                 'where' => 'web',
                 'what' => 'Abre el sitio del equipo (puerto 2027) en el navegador Firefox de Kali para leer su contenido.',
                 'why' => 'La web de "UIS GP Racing" presenta a sus integrantes. De ahí sacarás los posibles nombres de usuario del servidor.',
                 'parts' => [
                     ['firefox', 'el navegador gráfico de Kali.'],
-                    ['http://192.168.56.103:2027/', 'la dirección del sitio (ojo al puerto 2027).'],
+                    ['http://192.168.56.XXX:2027/', 'la dirección del sitio (ojo al puerto 2027).'],
                 ],
                 'where_text' => 'En Kali: lánzalo desde la terminal o abre Firefox y escribe la dirección en la barra.',
                 'expect' => 'La página de UIS GP Racing con la sección "Nuestro equipo": ingenieros y personal (Pablo Méndez, Daniela Castro, etc.).',
@@ -92,7 +134,7 @@ return [
             ],
             [
                 'title' => 'Generar un diccionario con las palabras del sitio',
-                'cmd' => "cewl -d 2 -m 6 -w dic.txt http://192.168.56.103:2027/",
+                'cmd' => "cewl -d 2 -m 6 -w dic.txt http://192.168.56.XXX:2027/",
                 'where' => 'kali',
                 'what' => 'Recorre la web y crea una lista (dic.txt) con las palabras que aparecen en ella, para usarlas como contraseñas candidatas.',
                 'why' => 'La contraseña nace del vocabulario del equipo. CeWL automatiza recoger ese vocabulario del propio sitio.',
@@ -101,7 +143,7 @@ return [
                     ['-d 2', 'profundidad de rastreo: sigue enlaces hasta 2 niveles.'],
                     ['-m 6', 'longitud mínima de palabra: 6 caracteres.'],
                     ['-w dic.txt', 'guarda el resultado en dic.txt.'],
-                    ['http://192.168.56.103:2027/', 'el sitio del que extraer las palabras.'],
+                    ['http://192.168.56.XXX:2027/', 'el sitio del que extraer las palabras.'],
                 ],
                 'where_text' => 'En la terminal de Kali Linux.',
                 'expect' => 'Un dic.txt con decenas de palabras del sitio, incluida la palabra en clave del monoplaza.',
@@ -130,7 +172,7 @@ return [
             ],
             [
                 'title' => 'Probar las credenciales contra SSH (hydra)',
-                'cmd' => "hydra -L usuarios.txt -P dic_final.txt 192.168.56.103 ssh -t 4 -V",
+                'cmd' => "hydra -L usuarios.txt -P dic_final.txt 192.168.56.XXX ssh -t 4 -V",
                 'where' => 'kali',
                 'what' => 'Prueba de forma automática y controlada cada usuario de la lista con cada contraseña del diccionario en el servicio SSH, hasta encontrar combinaciones válidas.',
                 'why' => 'Ya tienes usuarios candidatos y contraseñas candidatas; hydra comprueba cuáles funcionan sin hacerlo a mano.',
@@ -138,7 +180,7 @@ return [
                     ['hydra', 'herramienta de pruebas de credenciales sobre servicios de red.'],
                     ['-L usuarios.txt', 'lista de usuarios (mayúscula = archivo de usuarios).'],
                     ['-P dic_final.txt', 'lista de contraseñas (mayúscula = archivo de contraseñas).'],
-                    ['192.168.56.103 ssh', 'la máquina objetivo y el servicio a atacar (SSH).'],
+                    ['192.168.56.XXX ssh', 'la máquina objetivo y el servicio a atacar (SSH).'],
                     ['-t 4', '4 intentos en paralelo (suave, para no saturar el SSH).'],
                     ['-V', 'muestra cada intento (verbose).'],
                 ],
@@ -153,13 +195,13 @@ return [
             ],
             [
                 'title' => 'Entrar por SSH y leer tu primera evidencia',
-                'cmd' => "ssh pmendez@192.168.56.103",
+                'cmd' => "ssh pmendez@192.168.56.XXX",
                 'where' => 'ssh',
                 'what' => 'Abre una sesión remota en el servidor con la cuenta del ingeniero; te pedirá la contraseña que descubrió hydra. Ya dentro, lista tu home y lee user.txt.',
                 'why' => 'La primera flag (y la pista hacia la foto) están en el archivo user.txt del home de pmendez. Necesitas la sesión para leerlo.',
                 'parts' => [
                     ['ssh', 'cliente de acceso remoto seguro.'],
-                    ['pmendez@192.168.56.103', 'usuario@IP: con qué cuenta y a qué máquina te conectas.'],
+                    ['pmendez@192.168.56.XXX', 'usuario@IP: con qué cuenta y a qué máquina te conectas.'],
                 ],
                 'where_text' => 'Escríbelo en Kali. Desde que entres, tu terminal estará DENTRO del servidor víctima (el prompt cambia a pmendez@unab-racing-server). Ya dentro, ejecuta: ls  y luego  cat user.txt',
                 'expect' => 'ls muestra user.txt; cat user.txt imprime una bandera RASCASSE{...} y un mensaje: "Guarde una foto del W15 en /opt/gallery por si acaso".',
@@ -167,7 +209,7 @@ return [
                 'fail' => [
                     '«Permission denied»: contraseña incorrecta; revísala con hydra.',
                     '«cat.txt: command not found»: escribiste "cat.txt" junto; recuerda el espacio: cat user.txt.',
-                    'Si se queja de la clave del host tras recrear la VM: ssh-keygen -R 192.168.56.103 y reconéctate.',
+                    'Si se queja de la clave del host tras recrear la VM: ssh-keygen -R 192.168.56.XXX y reconéctate.',
                 ],
                 'meaning' => 'La flag confirma el compromiso del servidor y la pista te dirige a la fotografía de la galería.',
             ],
@@ -188,13 +230,13 @@ return [
         'steps' => [
             [
                 'title' => 'Copiar la foto de la galería a Kali',
-                'cmd' => "scp pmendez@192.168.56.103:/opt/gallery/unab_w15_montecarlo.jpg .",
+                'cmd' => "scp pmendez@192.168.56.XXX:/opt/gallery/unab_w15_montecarlo.jpg .",
                 'where' => 'kali',
                 'what' => 'Copia a tu Kali la fotografía del monoplaza desde la galería del servidor. Te pedirá la contraseña del ingeniero.',
                 'why' => 'Para analizar la imagen con steghide te conviene tenerla en local. Abre otra terminal en Kali y deja la sesión SSH abierta.',
                 'parts' => [
                     ['scp', 'copia segura de archivos por SSH.'],
-                    ['pmendez@192.168.56.103:/opt/gallery/unab_w15_montecarlo.jpg', 'la ruta remota de la foto (la que indicaba user.txt).'],
+                    ['pmendez@192.168.56.XXX:/opt/gallery/unab_w15_montecarlo.jpg', 'la ruta remota de la foto (la que indicaba user.txt).'],
                     ['.', 'destino: tu carpeta actual en Kali.'],
                 ],
                 'where_text' => 'En una terminal de Kali Linux (distinta a la sesión SSH). Introduce la contraseña del ingeniero cuando la pida.',
@@ -278,13 +320,13 @@ return [
         'steps' => [
             [
                 'title' => 'Copiar la captura a Kali',
-                'cmd' => "scp pmendez@192.168.56.103:/opt/evidence/team_radio.pcap .",
+                'cmd' => "scp pmendez@192.168.56.XXX:/opt/evidence/team_radio.pcap .",
                 'where' => 'kali',
                 'what' => 'Copia el archivo .pcap del servidor a tu Kali. Te pedirá la contraseña del ingeniero.',
                 'why' => 'Analizar la captura con tshark es más cómodo en Kali.',
                 'parts' => [
                     ['scp', 'copia segura por SSH.'],
-                    ['pmendez@192.168.56.103:/opt/evidence/team_radio.pcap', 'la ruta remota del PCAP (la que indicaba la nota de la foto).'],
+                    ['pmendez@192.168.56.XXX:/opt/evidence/team_radio.pcap', 'la ruta remota del PCAP (la que indicaba la nota de la foto).'],
                     ['.', 'destino: tu carpeta actual en Kali.'],
                 ],
                 'where_text' => 'En una terminal de Kali Linux.',
@@ -332,13 +374,13 @@ return [
         'steps' => [
             [
                 'title' => 'Copiar el contenedor cifrado a Kali',
-                'cmd' => "scp pmendez@192.168.56.103:/home/dcastro/evidence/aero_vault.enc .",
+                'cmd' => "scp pmendez@192.168.56.XXX:/home/dcastro/evidence/aero_vault.enc .",
                 'where' => 'kali',
                 'what' => 'Copia a tu Kali el contenedor cifrado que indicaba el correo, desde la carpeta de la ingeniera de datos.',
                 'why' => 'Para trabajar con OpenSSL y GPG te conviene tener el archivo en local.',
                 'parts' => [
                     ['scp', 'copia segura por SSH.'],
-                    ['pmendez@192.168.56.103:/home/dcastro/evidence/aero_vault.enc', 'la ruta remota del contenedor (la que leíste en el correo).'],
+                    ['pmendez@192.168.56.XXX:/home/dcastro/evidence/aero_vault.enc', 'la ruta remota del contenedor (la que leíste en el correo).'],
                     ['.', 'destino: tu carpeta actual en Kali.'],
                 ],
                 'where_text' => 'En una terminal de Kali Linux.',
@@ -471,12 +513,12 @@ return [
             ],
             [
                 'title' => 'Volver al servidor y ver tus permisos sudo',
-                'cmd' => "ssh pmendez@192.168.56.103\nsudo -l",
+                'cmd' => "ssh pmendez@192.168.56.XXX\nsudo -l",
                 'where' => 'ssh',
                 'what' => 'Entra de nuevo al servidor (si cerraste la sesión) y lista qué comandos puede ejecutar tu usuario con privilegios de administrador.',
                 'why' => 'Una escalada suele aprovechar un permiso sudo mal configurado. Verás que puedes ejecutar como root, sin contraseña, justo el binario que reveló el reto RSA.',
                 'parts' => [
-                    ['ssh pmendez@192.168.56.103', 'reconéctate al servidor (la escalada se hace ahí, no en Kali).'],
+                    ['ssh pmendez@192.168.56.XXX', 'reconéctate al servidor (la escalada se hace ahí, no en Kali).'],
                     ['sudo -l', 'lista (list) los privilegios sudo de tu usuario.'],
                 ],
                 'where_text' => 'La primera línea se escribe en Kali; a partir de ahí estás dentro del servidor. Ejecuta sudo -l ya dentro.',
