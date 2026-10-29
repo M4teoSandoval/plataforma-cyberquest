@@ -78,9 +78,10 @@
     .facilitators { font-size: 10pt; color: #16222E; margin-top: 12pt; }
     .facilitators b { color: #0E2438; }
 
-    .footer-row { margin: 14pt 46pt 0; }
+    .footer-row { margin: 12pt 46pt 0; }
     .footer-row table { width: 100%; border-collapse: collapse; }
     .footer-row td { width: 50%; text-align: center; vertical-align: top; padding: 0 30pt; }
+    .sign .firma { display: block; height: 46pt; margin: 0 auto 3pt; }
     .sign .line { border-top: 0.8pt solid #16222E; margin: 0 0 4pt; }
     .sign .role { font-size: 8pt; color: #4A6075; }
     .sign .nm { font-size: 9pt; font-weight: bold; color: #0E2438; }
@@ -145,11 +146,17 @@
     <div class="footer-row">
         <table><tr>
             <td class="sign">
+                @if(!empty($firmaYamid))
+                    <img class="firma" src="{{ $firmaYamid }}" alt="Firma de Yamid Gabriel Gamba González">
+                @endif
                 <div class="line"></div>
                 <div class="nm">Yamid Gabriel Gamba González</div>
                 <div class="role">Facilitador</div>
             </td>
             <td class="sign">
+                @if(!empty($firmaFabian))
+                    <img class="firma" src="{{ $firmaFabian }}" alt="Firma de Fabián Suárez">
+                @endif
                 <div class="line"></div>
                 <div class="nm">Fabián Suárez</div>
                 <div class="role">Facilitador</div>

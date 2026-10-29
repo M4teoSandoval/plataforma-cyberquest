@@ -164,6 +164,18 @@ class StudentController extends Controller
             ? 'data:image/png;base64,'.base64_encode(file_get_contents($logoPath))
             : null;
 
+        // Firmas de los facilitadores (PNG con fondo transparente). Se incrustan
+        // en el PDF igual que el logo para que el documento sea autocontenido.
+        $firmaYamidPath = public_path('images/firmas/firma_yamid-removebg-preview.png');
+        $firmaYamid = is_file($firmaYamidPath)
+            ? 'data:image/png;base64,'.base64_encode(file_get_contents($firmaYamidPath))
+            : null;
+
+        $firmaFabianPath = public_path('images/firmas/firma_fabian-removebg-preview.png');
+        $firmaFabian = is_file($firmaFabianPath)
+            ? 'data:image/png;base64,'.base64_encode(file_get_contents($firmaFabianPath))
+            : null;
+
         $meses = [1 => 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
             'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
         $fecha = $certificate->issued_at;
@@ -174,6 +186,8 @@ class StudentController extends Controller
             'code' => $certificate->code,
             'fechaTexto' => $fechaTexto,
             'logo' => $logo,
+            'firmaYamid' => $firmaYamid,
+            'firmaFabian' => $firmaFabian,
         ])->setPaper('a4', 'landscape');
 
         $slug = \Illuminate\Support\Str::slug($s->nombre) ?: 'participante';
