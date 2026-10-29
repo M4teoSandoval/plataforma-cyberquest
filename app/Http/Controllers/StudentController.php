@@ -264,6 +264,22 @@ class StudentController extends Controller
     }
 
     /**
+     * Envía al formulario de satisfacción configurado en SURVEY_URL.
+     * La URL vive en config/cyberquest.php para poder cambiarla sin tocar
+     * las vistas; si no está configurada, se vuelve al resultado.
+     */
+    public function survey()
+    {
+        $url = config('cyberquest.survey_url');
+
+        if (! $url) {
+            return redirect()->route('resultado');
+        }
+
+        return redirect()->away($url);
+    }
+
+    /**
      * Genera y descarga el certificado PDF personalizado.
      *
      * Seguridad: la autorización se decide SOLO con datos del backend.

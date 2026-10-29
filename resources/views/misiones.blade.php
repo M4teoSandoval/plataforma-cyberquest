@@ -44,7 +44,7 @@
     </div>
     <div class="mt">
       <span class="kv">Red <b>192.168.56.0/24</b></span>
-      <span class="kv">Víctima (ej.) <b>192.168.56.103</b></span>
+      <span class="kv">Víctima (ej.) <b>192.168.56.XXX</b></span>
       <span class="kv">SSH <b>:22</b></span>
       <span class="kv">Web Apache <b>:2027</b></span>
     </div>

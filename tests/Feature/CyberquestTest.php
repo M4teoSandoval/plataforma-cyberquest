@@ -252,6 +252,53 @@ class CyberquestTest extends TestCase
         $this->assertSame(1, \App\Models\Certificate::count());
     }
 
+    public function test_la_encuesta_aparece_al_completar_las_cinco_misiones_y_redirige_al_formulario(): void
+    {
+        config(['cyberquest.survey_url' => 'https://forms.gle/ejemplo']);
+
+        $this->registro();
+        $s = Student::first();
+        $this->completarTodo($s);
+
+        $this->get('/resultado')
+            ->assertOk()
+            ->assertSee('Cuéntanos tu experiencia')
+            ->assertSee('Responder encuesta de satisfacción');
+
+        $this->get('/encuesta')->assertRedirect('https://forms.gle/ejemplo');
+    }
+
+    public function test_la_encuesta_no_aparece_si_faltan_misiones(): void
+    {
+        config(['cyberquest.survey_url' => 'https://forms.gle/ejemplo']);
+
+        $this->registro();
+        $s = Student::first();
+        foreach (Mission::orderBy('orden')->take(2)->get() as $m) {
+            Submission::create(['student_id' => $s->id, 'mission_id' => $m->id, 'correcta' => true]);
+        }
+
+        $this->get('/resultado')
+            ->assertOk()
+            ->assertDontSee('Cuéntanos tu experiencia')
+            ->assertDontSee('Responder encuesta de satisfacción');
+    }
+
+    public function test_sin_formulario_configurado_la_encuesta_no_se_muestra(): void
+    {
+        config(['cyberquest.survey_url' => null]);
+
+        $this->registro();
+        $s = Student::first();
+        $this->completarTodo($s);
+
+        $this->get('/resultado')
+            ->assertOk()
+            ->assertDontSee('Cuéntanos tu experiencia');
+
+        $this->get('/encuesta')->assertRedirect('/resultado');
+    }
+
     public function test_eliminar_estudiante_borra_su_progreso(): void
     {
         $s = Student::create(['uid' => 'U00000003', 'nombre' => 'Caro', 'correo' => 'c@unab.edu.co']);

@@ -14,6 +14,9 @@
     border-radius:16px;padding:26px;margin:22px 0;text-align:center}
   .cert-cta h3{font-size:1.4rem;color:var(--gold)}
   .btn.cert{background:var(--gold);color:#1a1205;font-size:1.05rem;padding:15px 28px;margin-top:8px}
+  .survey-cta{background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--accent);
+    border-radius:16px;padding:24px;margin:18px 0;text-align:center}
+  .survey-cta h3{font-size:1.35rem;color:var(--accent)}
   .skills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0 0}
   .skills span{background:var(--green-soft);color:var(--green);border:1px solid rgba(49,194,124,.3);
     border-radius:999px;padding:6px 13px;font-size:.84rem}
@@ -86,6 +89,17 @@
         <a class="btn cert" href="{{ route('certificado') }}">⬇ DESCARGAR MI CERTIFICADO PDF</a>
         <p class="hint center mt">Puedes volver a descargarlo cuando quieras desde esta pantalla.</p>
       </div>
+
+      {{-- Encuesta de satisfacción: último paso del taller --}}
+      @if(config('cyberquest.survey_url'))
+        <div class="survey-cta">
+          <span class="eyebrow">Último paso</span>
+          <h3 class="mt">Cuéntanos tu experiencia</h3>
+          <p class="lead center" style="margin:6px auto 0">Tu opinión nos ayuda a mejorar la próxima edición del taller de la Semana de Ingeniería UNAB 2026. Toma menos de 2 minutos.</p>
+          <a class="btn" href="{{ route('encuesta') }}" target="_blank" rel="noopener">Responder encuesta de satisfacción</a>
+          <p class="hint center mt">Se abre en una pestaña nueva para que no pierdas tu certificado.</p>
+        </div>
+      @endif
     @endif
 
     <div class="center mt"><a class="btn ghost" href="{{ route('misiones') }}">Volver a las misiones</a></div>

@@ -14,6 +14,7 @@ Route::get('/misiones', [StudentController::class, 'missions'])->name('misiones'
 Route::post('/misiones/{mission}/flag', [StudentController::class, 'submitFlag'])->name('flag.submit');
 Route::post('/finalizar', [StudentController::class, 'finish'])->name('finalizar');
 Route::get('/resultado', [StudentController::class, 'results'])->name('resultado');
+Route::get('/encuesta', [StudentController::class, 'survey'])->name('encuesta');
 Route::get('/certificado', [StudentController::class, 'certificate'])->name('certificado');
 Route::post('/salir', [StudentController::class, 'logout'])->name('salir');
 
