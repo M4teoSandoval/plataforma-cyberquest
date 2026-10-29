@@ -71,7 +71,7 @@
         font-size: 13pt; font-weight: bold; color: #16222E; margin: 8pt 0; line-height: 1.3;
     }
 
-    .meta { margin-top: 14pt; width: 100%; }
+    .meta { margin-top: 10pt; width: 100%; }
     .meta td { font-size: 8.8pt; color: #3A4D5E; padding: 1.5pt 10pt; vertical-align: top; }
     .meta .lbl { color: #9A6F1F; font-weight: bold; text-transform: uppercase; letter-spacing: 1pt; font-size: 7.5pt; }
 
@@ -87,7 +87,7 @@
     .sign .nm { font-size: 9pt; font-weight: bold; color: #0E2438; }
 
     .certid {
-        text-align: center; margin-top: 10pt;
+        text-align: center; margin-top: 4pt;
         font-family: "DejaVu Sans Mono", monospace; font-size: 7.5pt; color: #6B7C8A;
         line-height: 1.5;
     }

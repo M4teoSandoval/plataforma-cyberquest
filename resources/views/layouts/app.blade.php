@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Operación RASCASSE — CYBERQUEST</title>
+<link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+<link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+<meta name="theme-color" content="#070C0D">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -188,7 +191,7 @@ th{font-family:var(--font-d);color:var(--muted);font-size:.85rem}
 </div>
 @yield('content')
 <div class="checker"></div>
-<p class="footer">// Entorno académico y aislado · Todos los equipos, personas y datos son ficticios</p>
+<p class="footer">// Desarrollado por Mateo Sandoval, Juan David Contreras, Wilson Suárez y Ralph Castellanos · UNAB</p>
 
 <script>
 // Copia al portapapeles el comando exacto (data-cmd), con confirmación visual y
