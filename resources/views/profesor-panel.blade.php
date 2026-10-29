@@ -108,6 +108,40 @@ tr.detail td{background:var(--surface-2);padding:16px 18px}
 
   @if(session('notice'))<div class="notice">{{ session('notice') }}</div>@endif
 
+  {{-- Solicitudes de reingreso pendientes --}}
+  @if($reentryRequests->isNotEmpty())
+    <div class="panel">
+      <h3 class="ptitle">Solicitudes de reingreso</h3>
+      <p class="psub">Estudiantes que perdieron la sesión y piden volver a entrar. Al aprobar, su pantalla de espera los deja entrar automáticamente.</p>
+      @foreach($reentryRequests as $req)
+        <div class="mrow">
+          <div class="mrow-top">
+            <b>{{ $req->nombre }}</b>
+            <span>{{ $req->uid }} · {{ $req->correo }} · solicitado {{ $req->reentry_requested_at->locale('es')->diffForHumans() }}</span>
+          </div>
+          <div class="dactions" style="margin-top:10px">
+            @if($req->allow_reentry)
+              <span class="pill activo">Aprobado · esperando ingreso</span>
+              <span style="flex:1"></span>
+              <form method="POST" action="{{ route('profesor.reingreso.rechazar', $req) }}">@csrf @method('DELETE')
+                <button class="btn ghost small">Revocar</button>
+              </form>
+            @else
+              <span class="pill finalizo">Pendiente</span>
+              <span style="flex:1"></span>
+              <form method="POST" action="{{ route('profesor.reingreso', $req) }}">@csrf
+                <button class="btn small">Aceptar y dejar entrar</button>
+              </form>
+              <form method="POST" action="{{ route('profesor.reingreso.rechazar', $req) }}">@csrf @method('DELETE')
+                <button class="btn ghost small">Rechazar</button>
+              </form>
+            @endif
+          </div>
+        </div>
+      @endforeach
+    </div>
+  @endif
+
   {{-- Indicadores generales --}}
   <div class="kpis">
     <div class="kpi"><div class="k-lbl">Investigadores</div><div class="k-num">{{ $kpis['registered'] }}</div><div class="k-sub">registrados en la operación</div></div>
@@ -226,7 +260,8 @@ tr.detail td{background:var(--surface-2);padding:16px 18px}
               <td>{{ $row['lastActivity'] ? $row['lastActivity']->locale('es')->diffForHumans() : '—' }}</td>
               <td>
                 <span class="pill {{ $row['status'] }}">{{ ['activo' => 'Activo', 'inactivo' => 'Inactivo', 'finalizo' => 'Finalizó'][$row['status']] }}</span>
-                @if($s->allow_reentry)<span class="pill reentry" title="Puede volver a registrarse con su ID y correo">Reingreso</span>@endif
+                @if($s->allow_reentry)<span class="pill reentry" title="Reingreso aprobado, esperando que el estudiante entre">Reingreso</span>
+                @elseif($s->reentry_requested_at)<span class="pill reentry" title="El estudiante solicitó reingreso">Solicita reingreso</span>@endif
               </td>
             </tr>
             <tr class="detail" hidden>

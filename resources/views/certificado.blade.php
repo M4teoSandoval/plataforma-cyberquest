@@ -78,16 +78,16 @@
     .facilitators { font-size: 10pt; color: #16222E; margin-top: 12pt; }
     .facilitators b { color: #0E2438; }
 
-    .footer-row { margin: 12pt 46pt 0; }
+    .footer-row { margin: 8pt 46pt 0; }
     .footer-row table { width: 100%; border-collapse: collapse; }
     .footer-row td { width: 50%; text-align: center; vertical-align: top; padding: 0 30pt; }
-    .sign .firma { display: block; height: 46pt; margin: 0 auto 3pt; }
-    .sign .line { border-top: 0.8pt solid #16222E; margin: 0 0 4pt; }
+    .sign .firma { display: block; height: 42pt; margin: 0 auto 1pt; }
+    .sign .line { border-top: 0.8pt solid #16222E; margin: 0 0 3pt; }
     .sign .role { font-size: 8pt; color: #4A6075; }
     .sign .nm { font-size: 9pt; font-weight: bold; color: #0E2438; }
 
     .certid {
-        text-align: center; margin-top: 16pt;
+        text-align: center; margin-top: 10pt;
         font-family: "DejaVu Sans Mono", monospace; font-size: 7.5pt; color: #6B7C8A;
         line-height: 1.5;
     }

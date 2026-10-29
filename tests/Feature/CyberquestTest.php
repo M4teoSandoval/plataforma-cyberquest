@@ -76,8 +76,91 @@ class CyberquestTest extends TestCase
         $this->registro()->assertSessionHasErrors('uid');
     }
 
-    public function test_el_dashboard_requiere_sesion_de_profesor(): void
+    public function test_solicitar_reingreso_exige_id_y_correo_del_registro(): void
     {
+        $this->registro();
+        $student = Student::first();
+        $this->flushSession();
+
+        $this->post('/reingreso', ['uid' => 'U00123456', 'correo' => 'otro@unab.edu.co'])
+            ->assertSessionHasErrors('uid');
+
+        $this->assertNull($student->fresh()->reentry_requested_at);
+        $this->assertFalse($student->fresh()->allow_reentry);
+    }
+
+    public function test_el_profesor_aprueba_y_el_estudiante_entra_solo(): void
+    {
+        $this->registro();
+        $student = Student::first();
+        Submission::create(['student_id' => $student->id, 'mission_id' => Mission::first()->id, 'correcta' => true]);
+        $this->flushSession();
+
+        $this->post('/reingreso', ['uid' => 'U00123456', 'correo' => 'aperez@unab.edu.co'])
+            ->assertRedirect('/reingreso/espera');
+
+        $student->refresh();
+        $this->assertNotNull($student->reentry_requested_at);
+        $this->assertFalse($student->allow_reentry);
+
+        // La pantalla de espera y la solicitud en el panel del profesor.
+        $this->get('/reingreso/espera')->assertOk()->assertSee('Esperando la aprobación');
+        $this->withSession(['is_teacher' => true])->get('/profesor/panel')
+            ->assertOk()
+            ->assertSee('Solicitudes de reingreso')
+            ->assertSee('U00123456');
+
+        // Mientras el profesor no apruebe, sigue esperando.
+        $this->getJson('/reingreso/estado')->assertJson(['status' => 'pending']);
+        $this->get('/misiones')->assertRedirect('/empezar');
+
+        $this->withSession(['is_teacher' => true])
+            ->post("/profesor/estudiantes/{$student->id}/reingreso")->assertRedirect();
+
+        // La pantalla de espera detecta la aprobación y abre la sesión.
+        $this->getJson('/reingreso/estado')
+            ->assertOk()
+            ->assertJson(['status' => 'approved', 'redirect' => route('misiones')]);
+
+        $this->get('/misiones')->assertOk();
+        $this->assertSame(1, $student->fresh()->submissions()->count());
+        $this->assertFalse($student->fresh()->allow_reentry);
+        $this->assertNull($student->fresh()->reentry_requested_at);
+    }
+
+    public function test_el_profesor_rechaza_y_el_estudiante_no_entra(): void
+    {
+        $this->registro();
+        $student = Student::first();
+        $this->flushSession();
+
+        $this->post('/reingreso', ['uid' => 'U00123456', 'correo' => 'aperez@unab.edu.co'])
+            ->assertRedirect('/reingreso/espera');
+
+        $this->withSession(['is_teacher' => true])
+            ->delete("/profesor/estudiantes/{$student->id}/reingreso")->assertRedirect();
+
+        $this->getJson('/reingreso/estado')->assertJson(['status' => 'rejected']);
+        $this->get('/misiones')->assertRedirect('/empezar');
+    }
+
+    public function test_solo_el_profesor_puede_aprobar_o_rechazar_reingresos(): void
+    {
+        $this->registro();
+        $student = Student::first();
+        $this->flushSession();
+
+        $this->post('/reingreso', ['uid' => 'U00123456', 'correo' => 'aperez@unab.edu.co']);
+        $this->flushSession();
+
+        $this->post("/profesor/estudiantes/{$student->id}/reingreso")->assertRedirect('/profesor');
+        $this->delete("/profesor/estudiantes/{$student->id}/reingreso")->assertRedirect('/profesor');
+
+        $this->assertFalse($student->fresh()->allow_reentry);
+        $this->assertNotNull($student->fresh()->reentry_requested_at);
+    }
+
+    public function test_el_dashboard_requiere_sesion_de_profesor(): void    {
         $this->get('/profesor/panel')->assertRedirect('/profesor');
         $this->get('/profesor/exportar')->assertRedirect('/profesor');
         $s = Student::create(['uid' => 'U00000009', 'nombre' => 'Dani', 'correo' => 'd@unab.edu.co']);

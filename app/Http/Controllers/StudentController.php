@@ -22,6 +22,11 @@ class StudentController extends Controller
             return redirect()->route('misiones');
         }
 
+        // Si ya hay una solicitud de reingreso en curso, retoma la pantalla de espera.
+        if (session('reentry_uid')) {
+            return redirect()->route('reingreso.espera');
+        }
+
         return view('registro');
     }
 
@@ -46,10 +51,10 @@ class StudentController extends Controller
             // y el correo coincide con el del registro original.
             if (! $existing->allow_reentry || $existing->correo !== $data['correo']) {
                 return back()->withInput()->withErrors([
-                    'uid' => 'Este ID ya está registrado en la operación. Si eres tú y perdiste la sesión, pídele al profesor que habilite tu reingreso.',
+                    'uid' => 'Este ID ya está registrado en la operación. Si eres tú y perdiste la sesión, usa la opción «Solicitar reingreso» aquí abajo.',
                 ]);
             }
-            $existing->update(['allow_reentry' => false]);
+            $existing->update(['allow_reentry' => false, 'reentry_requested_at' => null]);
             $student = $existing;
         } else {
             if (Student::where('correo', $data['correo'])->exists()) {
@@ -64,7 +69,135 @@ class StudentController extends Controller
         }
 
         $r->session()->regenerate();
+        $r->session()->forget('reentry_uid');
         session(['student_uid' => $student->uid]);
+
+        return redirect()->route('misiones');
+    }
+
+    /**
+     * El estudiante pide reingreso cuando perdió su sesión. La solicitud queda
+     * visible en el panel del profesor; solo se entra cuando él la aprueba.
+     */
+    public function requestReentry(Request $r)
+    {
+        if ($this->current()) {
+            return redirect()->route('misiones');
+        }
+
+        $r->merge([
+            'uid' => strtoupper(trim((string) $r->input('uid'))),
+            'correo' => strtolower(trim((string) $r->input('correo'))),
+        ]);
+
+        $data = $r->validate([
+            'uid' => ['required', 'regex:/^U00\d{3,}$/'],
+            'correo' => ['required', 'email', 'max:120'],
+        ], [], ['correo' => 'correo', 'uid' => 'ID']);
+
+        $student = Student::where('uid', $data['uid'])->first();
+
+        // La identidad se valida solo con datos del backend: el ID debe existir
+        // y el correo debe coincidir con el del registro original.
+        if (! $student || $student->correo !== $data['correo']) {
+            return back()->withInput()->withErrors([
+                'uid' => 'No encontramos un registro con ese ID y correo. Verifica los datos.',
+            ]);
+        }
+
+        // Si el profesor ya habilitó el reingreso, se entra de una vez.
+        if ($student->allow_reentry) {
+            return $this->completeReentry($r, $student);
+        }
+
+        $student->update(['reentry_requested_at' => now()]);
+        $r->session()->put('reentry_uid', $student->uid);
+
+        return redirect()->route('reingreso.espera');
+    }
+
+    /**
+     * Pantalla de espera mientras el profesor aprueba la solicitud.
+     */
+    public function reentryWait(Request $r)
+    {
+        if ($this->current()) {
+            return redirect()->route('misiones');
+        }
+
+        $student = $this->pendingReentryStudent();
+
+        if (! $student) {
+            session()->forget('reentry_uid');
+
+            return redirect()->route('registro');
+        }
+
+        // Aprobado mientras estaba en esta pantalla: entra sin volver a escribir nada.
+        if ($student->allow_reentry) {
+            return $this->completeReentry($r, $student);
+        }
+
+        if (! $student->reentry_requested_at) {
+            session()->forget('reentry_uid');
+
+            return redirect()->route('registro')->withErrors([
+                'uid' => 'La solicitud de reingreso no fue aprobada. Puedes volver a solicitarla.',
+            ]);
+        }
+
+        return view('reingreso-espera', compact('student'));
+    }
+
+    /**
+     * Consulta de estado usada por la pantalla de espera (polling).
+     */
+    public function reentryStatus(Request $r)
+    {
+        if ($this->current()) {
+            return response()->json(['status' => 'approved', 'redirect' => route('misiones')]);
+        }
+
+        $student = $this->pendingReentryStudent();
+
+        if (! $student) {
+            $r->session()->forget('reentry_uid');
+
+            return response()->json(['status' => 'expired', 'redirect' => route('registro')]);
+        }
+
+        if ($student->allow_reentry) {
+            $this->completeReentry($r, $student);
+
+            return response()->json(['status' => 'approved', 'redirect' => route('misiones')]);
+        }
+
+        if ($student->reentry_requested_at) {
+            return response()->json(['status' => 'pending']);
+        }
+
+        $r->session()->forget('reentry_uid');
+
+        return response()->json(['status' => 'rejected', 'redirect' => route('registro')]);
+    }
+
+    private function pendingReentryStudent(): ?Student
+    {
+        $uid = session('reentry_uid');
+
+        return $uid ? Student::where('uid', $uid)->first() : null;
+    }
+
+    /**
+     * Consume la aprobación y abre la sesión del estudiante.
+     */
+    private function completeReentry(Request $r, Student $student)
+    {
+        $student->update(['allow_reentry' => false, 'reentry_requested_at' => null]);
+
+        $r->session()->forget('reentry_uid');
+        $r->session()->regenerate();
+        $r->session()->put('student_uid', $student->uid);
 
         return redirect()->route('misiones');
     }
@@ -197,7 +330,7 @@ class StudentController extends Controller
 
     public function logout()
     {
-        session()->forget('student_uid');
+        session()->forget(['student_uid', 'reentry_uid']);
 
         return redirect()->route('landing');
     }

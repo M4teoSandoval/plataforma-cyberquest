@@ -68,7 +68,13 @@ class TeacherController extends Controller
         $distribution = collect(range(0, $missions->count()))
             ->mapWithKeys(fn ($n) => [$n => $rows->where('solvedCount', $n)->count()]);
 
-        return view('profesor-panel', compact('rows', 'missions', 'kpis', 'missionStats', 'distribution'));
+        // Solicitudes de reingreso hechas desde el formulario del estudiante.
+        // Se muestran hasta que el estudiante entra (ahí se consumen).
+        $reentryRequests = Student::whereNotNull('reentry_requested_at')
+            ->orderBy('reentry_requested_at')
+            ->get();
+
+        return view('profesor-panel', compact('rows', 'missions', 'kpis', 'missionStats', 'distribution', 'reentryRequests'));
     }
 
     public function export()
@@ -116,7 +122,17 @@ class TeacherController extends Controller
         }
         $student->update(['allow_reentry' => true]);
 
-        return back()->with('notice', "Reingreso habilitado para {$student->uid}. Debe registrarse de nuevo con el mismo ID y correo.");
+        return back()->with('notice', "Reingreso aprobado para {$student->uid}. El estudiante entrará automáticamente desde su pantalla de espera.");
+    }
+
+    public function rejectReentry(Student $student)
+    {
+        if (! session('is_teacher')) {
+            return redirect()->route('profesor.login');
+        }
+        $student->update(['allow_reentry' => false, 'reentry_requested_at' => null]);
+
+        return back()->with('notice', "Solicitud de reingreso rechazada para {$student->uid}.");
     }
 
     public function destroy(Student $student)
